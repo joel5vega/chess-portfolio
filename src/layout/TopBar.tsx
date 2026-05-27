@@ -5,17 +5,22 @@ type TopBarProps = {
   focus: string;
 };
 
-export function TopBar({ activePiece, activeLabel, position, focus }: TopBarProps) {
+export function TopBar({
+  activePiece,
+  activeLabel,
+  position,
+  focus,
+}: TopBarProps) {
   return (
     <header className="topbar">
       <div className="topbar__left">
-        <span className="topbar__name">JOEL VEGA</span>
+        <span className="topbar__title">JOEL VEGA</span>
       </div>
 
       <div className="topbar__right">
         <span className="topbar__meta">Position: {position}</span>
         <span className="topbar__meta">
-          Active Piece: {activePiece} {activeLabel}
+          Active Zone: {activePiece} {activeLabel}
         </span>
         <span className="topbar__meta">Focus: {focus}</span>
       </div>

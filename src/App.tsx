@@ -1,8 +1,10 @@
-import type { SectionId } from './hooks/useActiveSection';
-import { useActiveSection } from './hooks/useActiveSection';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigationState } from './hooks/useNavigationState';
 import { Sidebar } from './layout/Sidebar';
 import { TopBar } from './layout/TopBar';
 import { MobileNav } from './layout/MobileNav';
+import { SpatialStage } from './components/spatial/SpatialStage';
+import { SectionFrame } from './components/SectionFrame';
 
 import { Identity } from './sections/Identity';
 import { Leadership } from './sections/Leadership';
@@ -13,58 +15,111 @@ import { Community } from './sections/Community';
 
 import './App.css';
 
-const SECTION_META: Record<
-  SectionId,
-  { piece: string; label: string; position: string; focus: string }
-> = {
-  identity:   { piece: '♔', label: 'Identity',   position: 'A1', focus: 'Mission & Philosophy' },
-  leadership: { piece: '♕', label: 'Leadership', position: 'B2', focus: 'Experience & Impact' },
-  systems:    { piece: '♖', label: 'Systems',    position: 'C3', focus: 'Projects & Infrastructure' },
-  teaching:   { piece: '♗', label: 'Teaching',   position: 'D4', focus: 'Education & Mentorship' },
-  strategy:   { piece: '♘', label: 'Strategy',   position: 'E4', focus: 'Analytics & Thinking' },
-  community:  { piece: '♙', label: 'Community',  position: 'F5', focus: 'Contact & Connection' },
-};
-
-function scrollToSection(id: SectionId) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-
 export default function App() {
-  const { activeSection } = useActiveSection();
-  const meta = SECTION_META[activeSection];
+  const {
+    items,
+    activeSection,
+    setActiveSection,
+    activeItem,
+    previewSection,
+    setPreviewSection,
+    previewItem,
+  } = useNavigationState();
+
+  const [moveLabel, setMoveLabel] = useState(`Move to ${activeItem.position}`);
+  const [hoverLabel, setHoverLabel] = useState('');
+  const [moveKey, setMoveKey] = useState(0);
+
+  useEffect(() => {
+    setMoveLabel(`Move to ${activeItem.position}`);
+    setMoveKey((k) => k + 1);
+  }, [activeItem.position]);
+
+ const miniMapSquares = useMemo(
+  () =>
+    items.map((item) => ({
+      id: item.id,
+      square: item.position,
+      active: item.id === activeSection,
+    })),
+  [items, activeSection]
+);
 
   return (
-    <div className="app">
-      <Sidebar
-        activeSection={activeSection}
-        sections={SECTION_META}
-        onSelect={scrollToSection}
+    <div className="app-shell">
+      <SpatialStage
+        activeItem={activeItem}
+        previewItem={previewItem}
+        previewSection={previewSection}
       />
 
-      <div className="app__main">
+      <Sidebar
+        items={items}
+        activeSection={activeSection}
+        previewSection={previewSection}
+        onSelect={setActiveSection}
+        onPreview={(id) => {
+          setPreviewSection(id);
+          const item = items.find((entry) => entry.id === id);
+          if (item) {
+  setHoverLabel(
+    `${item.position} — ${item.label} · ${item.focus}`
+  );
+}
+        }}
+        onPreviewEnd={() => {
+          setPreviewSection(null);
+          setHoverLabel('');
+        }}
+      />
+
+      <div className="app-main">
         <TopBar
-          activePiece={meta.piece}
-          activeLabel={meta.label}
-          position={meta.position}
-          focus={meta.focus}
+          activePiece={activeItem.piece}
+          activeLabel={activeItem.label}
+          position={activeItem.position}
+          focus={activeItem.focus}
         />
 
-        <main className="app__content">
-          <Identity id="identity" />
-          <Leadership id="leadership" />
-          <Systems id="systems" />
-          <Teaching id="teaching" />
-          <Strategy id="strategy" />
-          <Community id="community" />
+        <div className="hud">
+          <div className="hud__move" data-key={moveKey}>{moveLabel}</div>
+          <div className="hud__hover">{hoverLabel || activeItem.description}</div>
+
+         <div className="mini-map" aria-label="Strategic mini map">
+  {miniMapSquares.map((item) => (
+    <button
+      key={item.id}
+      type="button"
+      className={`mini-map__cell ${
+        item.active ? 'is-active' : ''
+      } ${item.preview ? 'is-preview' : ''}`}
+      title={item.square}
+      onClick={() => setActiveSection(item.id)}
+      onMouseEnter={() => setPreviewSection(item.id)}
+      onMouseLeave={() => setPreviewSection(null)}
+    >
+      {item.square}
+    </button>
+  ))}
+</div>
+        </div>
+
+        <main className="app-content">
+          <SectionFrame item={activeItem}>
+            {activeSection === 'identity' && <Identity id="identity" />}
+            {activeSection === 'leadership' && <Leadership id="leadership" />}
+            {activeSection === 'systems' && <Systems id="systems" />}
+            {activeSection === 'teaching' && <Teaching id="teaching" />}
+            {activeSection === 'strategy' && <Strategy id="strategy" />}
+            {activeSection === 'community' && <Community id="community" />}
+          </SectionFrame>
         </main>
       </div>
 
       <MobileNav
+        items={items}
         activeSection={activeSection}
-        sections={SECTION_META}
-        onSelect={scrollToSection}
+        onSelect={setActiveSection}
       />
     </div>
   );

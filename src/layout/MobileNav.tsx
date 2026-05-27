@@ -1,33 +1,30 @@
-import type { SectionId } from '../hooks/useActiveSection';
-
-type SectionMeta = {
-  piece: string;
-  label: string;
-  position: string;
-  focus: string;
-};
+import type { NavItem, SectionId } from '../data/navigation';
 
 type MobileNavProps = {
+  items: NavItem[];
   activeSection: SectionId;
-  sections: Record<SectionId, SectionMeta>;
   onSelect: (id: SectionId) => void;
 };
 
-export function MobileNav({ activeSection, sections, onSelect }: MobileNavProps) {
+export function MobileNav({
+  items,
+  activeSection,
+  onSelect,
+}: MobileNavProps) {
   return (
-    <nav className="mobile-nav">
-      {(Object.keys(sections) as SectionId[]).map(id => {
-        const { piece, label } = sections[id];
-        const isActive = id === activeSection;
+    <nav className="mobile-nav" aria-label="Mobile strategic navigation">
+      {items.map((item) => {
+        const isActive = item.id === activeSection;
+
         return (
           <button
-            key={id}
-            className={`mobile-nav__item ${isActive ? 'mobile-nav__item--active' : ''}`}
-            onClick={() => onSelect(id)}
+            key={item.id}
             type="button"
+            className={`mobile-nav__item ${isActive ? 'is-active' : ''}`}
+            onClick={() => onSelect(item.id)}
           >
-            <span className="mobile-nav__piece">{piece}</span>
-            {isActive && <span className="mobile-nav__label">{label}</span>}
+            <span className="mobile-nav__piece">{item.piece}</span>
+            {isActive && <span className="mobile-nav__label">{item.label}</span>}
           </button>
         );
       })}
