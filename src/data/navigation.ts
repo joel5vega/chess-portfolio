@@ -47,21 +47,64 @@ export const squareToWorld = (square: BoardSquare): [number, number, number] => 
   return [x, 0.02, z];
 };
 
+type CameraOffsets = {
+  positionOffset: [number, number, number];
+  targetOffset?: [number, number, number];
+};
+
+const buildCameraFromSquare = (
+  square: BoardSquare,
+  offsets: CameraOffsets
+): NavItem['camera'] => {
+  const [x, y, z] = squareToWorld(square);
+  const [px, py, pz] = offsets.positionOffset;
+  const [tx, ty, tz] = offsets.targetOffset ?? [0, 0, 0];
+
+  return {
+    position: [x + px, y + py, z + pz],
+    target: [x + tx, y + ty, z + tz],
+  };
+};
+
+const CAMERA_PRESETS: Record<SectionId, CameraOffsets> = {
+  identity: {
+    positionOffset: [0.0, 5.2, 6.4],
+    targetOffset: [0, 0.5, 0],
+  },
+  leadership: {
+    positionOffset: [1.4, 5.6, 6.8],
+    targetOffset: [0, 0.45, 0],
+  },
+  systems: {
+    positionOffset: [2.8, 5.4, 6.6],
+    targetOffset: [0.2, 0.3, 0],
+  },
+  teaching: {
+    positionOffset: [1.4, 5.1, 6.2],
+    targetOffset: [0.2, 0.25, 0],
+  },
+  strategy: {
+    positionOffset: [1.8, 4.8, 5.8],
+    targetOffset: [0.1, 0.25, 0],
+  },
+  community: {
+    positionOffset: [-1.2, 5.0, 5.6],
+    targetOffset: [0, 0.35, 0],
+  },
+};
+
 export const NAV_ITEMS: NavItem[] = [
   {
     id: 'identity',
     piece: '♔',
     label: 'Identity',
-    position: 'E1',
+    position: 'C5',
     focus: 'Mission & Philosophy',
     pieceName: 'King',
     description: 'Centralized king. Quiet confidence, purpose, and stable identity.',
-    camera: {
-      position: [1.1, 5.8, 8.6],
-      target: [0.7, 0, 4.9],
-    },
+    camera: buildCameraFromSquare('C5', CAMERA_PRESETS.identity),
     zone: {
-      square: 'E1',
+      square: 'C5',
       color: '#8eb6ff',
     },
   },
@@ -69,16 +112,13 @@ export const NAV_ITEMS: NavItem[] = [
     id: 'leadership',
     piece: '♕',
     label: 'Leadership',
-    position: 'D4',
+    position: 'D7',
     focus: 'Experience & Impact',
     pieceName: 'Queen',
     description: 'Coordinated influence. Leadership as orchestration and guidance.',
-    camera: {
-      position: [1.6, 4.6, 4.8],
-      target: [-0.7, 0, 0.7],
-    },
+    camera: buildCameraFromSquare('D7', CAMERA_PRESETS.leadership),
     zone: {
-      square: 'D4',
+      square: 'D7',
       color: '#91b8ff',
     },
   },
@@ -86,16 +126,13 @@ export const NAV_ITEMS: NavItem[] = [
     id: 'systems',
     piece: '♖',
     label: 'Systems',
-    position: 'A1',
+    position: 'A4',
     focus: 'Projects & Infrastructure',
     pieceName: 'Rook',
     description: 'Connected rooks. Architecture, reliability, and execution.',
-    camera: {
-      position: [-6.7, 4.6, 8.2],
-      target: [-4.9, 0, 4.9],
-    },
+    camera: buildCameraFromSquare('A4', CAMERA_PRESETS.systems),
     zone: {
-      square: 'A1',
+      square: 'A4',
       color: '#4f8fff',
     },
   },
@@ -103,16 +140,13 @@ export const NAV_ITEMS: NavItem[] = [
     id: 'teaching',
     piece: '♗',
     label: 'Teaching',
-    position: 'C3',
+    position: 'C2',
     focus: 'Education & Mentorship',
     pieceName: 'Bishop',
     description: 'Long diagonal control. Teaching as guidance, vision, and formation.',
-    camera: {
-      position: [-3.9, 5.2, 5.6],
-      target: [-2.1, 0, 2.1],
-    },
+    camera: buildCameraFromSquare('C2', CAMERA_PRESETS.teaching),
     zone: {
-      square: 'C3',
+      square: 'C2',
       color: '#b3ceff',
     },
   },
@@ -120,16 +154,13 @@ export const NAV_ITEMS: NavItem[] = [
     id: 'strategy',
     piece: '♘',
     label: 'Strategy',
-    position: 'F5',
+    position: 'F4',
     focus: 'Analytics & Thinking',
     pieceName: 'Knight',
     description: 'Knight outpost. Non-linear thinking, calculated creativity, deep analysis.',
-    camera: {
-      position: [4.6, 5.5, 2.4],
-      target: [2.1, 0, -0.7],
-    },
+    camera: buildCameraFromSquare('F4', CAMERA_PRESETS.strategy),
     zone: {
-      square: 'F5',
+      square: 'F4',
       color: '#9fc4ff',
     },
   },
@@ -141,10 +172,7 @@ export const NAV_ITEMS: NavItem[] = [
     focus: 'Contact & Connection',
     pieceName: 'Pawn',
     description: 'Promotion path. Growth, service, and human impact.',
-    camera: {
-      position: [7.2, 4.2, -4.2],
-      target: [4.9, 0, -4.9],
-    },
+    camera: buildCameraFromSquare('H8', CAMERA_PRESETS.community),
     zone: {
       square: 'H8',
       color: '#d2e2ff',

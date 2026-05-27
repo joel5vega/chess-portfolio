@@ -19,7 +19,8 @@ export function SpatialStage({
   return (
     <div className="spatial-stage" aria-hidden="true">
       <Canvas
-        camera={{ position: activeItem.camera.position, fov: 40 }}
+        shadows
+        camera={{ position: [0, 7, 11], fov: 34 }}
         dpr={[1, 1.8]}
       >
         <CameraRig targetPreset={target.camera} />

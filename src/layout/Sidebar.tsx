@@ -2,55 +2,48 @@ import type { NavItem, SectionId } from '../data/navigation';
 
 type SidebarProps = {
   items: NavItem[];
-  activeSection: SectionId;
-  previewSection: SectionId | null;
-  onSelect: (id: SectionId) => void;
-  onPreview: (id: SectionId) => void;
-  onPreviewEnd: () => void;
+  activeId: SectionId;
+  onNavigate: (id: SectionId) => void;
+  onPreview: (id: SectionId | null) => void;
 };
 
 export function Sidebar({
   items,
-  activeSection,
-  previewSection,
-  onSelect,
+  activeId,
+  onNavigate,
   onPreview,
-  onPreviewEnd,
 }: SidebarProps) {
   return (
-    <aside className="sidebar">
-      <div className="sidebar__brand">
-        <p className="sidebar__name">JOEL VEGA</p>
-        <p className="sidebar__role">Strategic Engineer</p>
+    <aside className="sidebar" aria-label="Primary navigation">
+      <div className="sidebar-brand">
+        <span className="sidebar-kicker">JOEL VEGA</span>
+        <h1 className="sidebar-title">Strategic Engineer</h1>
       </div>
 
-      <div className="sidebar__divider" />
-
-      <nav className="sidebar__nav" aria-label="Strategic positions">
+      <nav className="sidebar-nav">
         {items.map((item) => {
-          const isActive = item.id === activeSection;
-          const isPreview = item.id === previewSection;
+          const isActive = item.id === activeId;
 
           return (
             <button
               key={item.id}
               type="button"
-              className={`sidebar__item ${isActive ? 'is-active' : ''} ${isPreview ? 'is-preview' : ''}`}
-              onClick={() => onSelect(item.id)}
+              className={`sidebar-link ${isActive ? 'is-active' : ''}`}
+              onClick={() => onNavigate(item.id)}
               onMouseEnter={() => onPreview(item.id)}
-              onMouseLeave={onPreviewEnd}
+              onMouseLeave={() => onPreview(null)}
+              onFocus={() => onPreview(item.id)}
+              onBlur={() => onPreview(null)}
             >
-              <span className="sidebar__rail" />
-              <span className="sidebar__piece">{item.piece}</span>
+              <span className="sidebar-link-row">
+                <span className="sidebar-link-icon" aria-hidden="true">
+                  {item.piece}
+                </span>
 
-              <span className="sidebar__copy">
-                <span className="sidebar__label">{item.label}</span>
-                <span className="sidebar__focus">{item.focus}</span>
-                {(isPreview || isActive) && (
-                  <span className="sidebar__coord">
-                    {item.position} — {item.label}
-                  </span>
-                )}
+                <span className="sidebar-link-content">
+                  <span className="sidebar-link-title">{item.label}</span>
+                  <span className="sidebar-link-copy">{item.focus}</span>
+                </span>
               </span>
             </button>
           );

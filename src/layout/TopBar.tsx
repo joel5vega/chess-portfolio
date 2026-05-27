@@ -1,29 +1,15 @@
+import type { NavItem } from '../data/navigation';
+
 type TopBarProps = {
-  activePiece: string;
-  activeLabel: string;
-  position: string;
-  focus: string;
+  item: NavItem;
 };
 
-export function TopBar({
-  activePiece,
-  activeLabel,
-  position,
-  focus,
-}: TopBarProps) {
+export function TopBar({ item }: TopBarProps) {
   return (
-    <header className="topbar">
-      <div className="topbar__left">
-        <span className="topbar__title">JOEL VEGA</span>
-      </div>
-
-      <div className="topbar__right">
-        <span className="topbar__meta">Position: {position}</span>
-        <span className="topbar__meta">
-          Active Zone: {activePiece} {activeLabel}
-        </span>
-        <span className="topbar__meta">Focus: {focus}</span>
-      </div>
+    <header className="top-bar" aria-label="Current section context">
+      <span className="top-bar-brand">JOEL VEGA</span>
+      <span>{item.piece} {item.position}</span>
+      <span>{item.focus}</span>
     </header>
   );
 }

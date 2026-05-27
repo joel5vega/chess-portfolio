@@ -1,6 +1,6 @@
 import { useFrame, useThree } from '@react-three/fiber';
-import { useMemo, useRef } from 'react';
-import { Vector3 } from 'three';
+import { useLayoutEffect, useMemo, useRef } from 'react';
+import * as THREE from 'three';
 
 type CameraPreset = {
   position: [number, number, number];
@@ -13,24 +13,33 @@ type CameraRigProps = {
 
 export function CameraRig({ targetPreset }: CameraRigProps) {
   const { camera } = useThree();
-  const lookAtRef = useRef(new Vector3(0, 0, 0));
 
-  const desiredPosition = useMemo(
-    () => new Vector3(...targetPreset.position),
-    [targetPreset]
-  );
+  const currentTarget = useMemo(() => new THREE.Vector3(), []);
+  const desiredPosition = useMemo(() => new THREE.Vector3(), []);
+  const desiredTarget = useMemo(() => new THREE.Vector3(), []);
+  const isFirstMount = useRef(true);
 
-  const desiredTarget = useMemo(
-    () => new Vector3(...targetPreset.target),
-    [targetPreset]
-  );
+  useLayoutEffect(() => {
+    desiredPosition.set(...targetPreset.position);
+    desiredTarget.set(...targetPreset.target);
+
+    if (isFirstMount.current) {
+      camera.position.copy(desiredPosition);
+      currentTarget.copy(desiredTarget);
+      isFirstMount.current = false;
+    }
+  }, [camera, targetPreset, desiredPosition, desiredTarget, currentTarget]);
 
   useFrame((_, delta) => {
-    const damp = 1 - Math.exp(-2.2 * delta);
+    desiredPosition.set(...targetPreset.position);
+    desiredTarget.set(...targetPreset.target);
 
-    camera.position.lerp(desiredPosition, damp);
-    lookAtRef.current.lerp(desiredTarget, damp);
-    camera.lookAt(lookAtRef.current);
+    const positionAlpha = 1 - Math.exp(-10 * delta);
+    const targetAlpha = 1 - Math.exp(-12 * delta);
+
+    camera.position.lerp(desiredPosition, positionAlpha);
+    currentTarget.lerp(desiredTarget, targetAlpha);
+    camera.lookAt(currentTarget);
   });
 
   return null;

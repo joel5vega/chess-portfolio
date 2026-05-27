@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import './App.css';
+import { NAV_ITEMS } from './data/navigation';
 import { useNavigationState } from './hooks/useNavigationState';
 import { Sidebar } from './layout/Sidebar';
 import { TopBar } from './layout/TopBar';
 import { MobileNav } from './layout/MobileNav';
+import { ContentSheet } from './layout/ContentSheet';
 import { SpatialStage } from './components/spatial/SpatialStage';
-import { SectionFrame } from './components/SectionFrame';
 
 import { Identity } from './sections/Identity';
 import { Leadership } from './sections/Leadership';
@@ -13,114 +14,69 @@ import { Teaching } from './sections/Teaching';
 import { Strategy } from './sections/Strategy';
 import { Community } from './sections/Community';
 
-import './App.css';
-
-export default function App() {
+function App() {
   const {
-    items,
-    activeSection,
-    setActiveSection,
     activeItem,
-    previewSection,
-    setPreviewSection,
     previewItem,
+    previewSection,
+    setActiveSection,
+    setPreviewSection,
   } = useNavigationState();
 
-  const [moveLabel, setMoveLabel] = useState(`Move to ${activeItem.position}`);
-  const [hoverLabel, setHoverLabel] = useState('');
-  const [moveKey, setMoveKey] = useState(0);
+  const visibleItem = previewItem ?? activeItem;
 
-  useEffect(() => {
-    setMoveLabel(`Move to ${activeItem.position}`);
-    setMoveKey((k) => k + 1);
-  }, [activeItem.position]);
-
- const miniMapSquares = useMemo(
-  () =>
-    items.map((item) => ({
-      id: item.id,
-      square: item.position,
-      active: item.id === activeSection,
-    })),
-  [items, activeSection]
-);
+  const renderSection = () => {
+    switch (activeItem.id) {
+      case 'identity':
+        return <Identity />;
+      case 'leadership':
+        return <Leadership />;
+      case 'systems':
+        return <Systems />;
+      case 'teaching':
+        return <Teaching />;
+      case 'strategy':
+        return <Strategy />;
+      case 'community':
+        return <Community />;
+      default:
+        return <Identity />;
+    }
+  };
 
   return (
     <div className="app-shell">
-      <SpatialStage
-        activeItem={activeItem}
-        previewItem={previewItem}
-        previewSection={previewSection}
-      />
-
       <Sidebar
-        items={items}
-        activeSection={activeSection}
-        previewSection={previewSection}
-        onSelect={setActiveSection}
-        onPreview={(id) => {
-          setPreviewSection(id);
-          const item = items.find((entry) => entry.id === id);
-          if (item) {
-  setHoverLabel(
-    `${item.position} — ${item.label} · ${item.focus}`
-  );
-}
-        }}
-        onPreviewEnd={() => {
-          setPreviewSection(null);
-          setHoverLabel('');
-        }}
+        items={NAV_ITEMS}
+        activeId={activeItem.id}
+        onNavigate={setActiveSection}
+        onPreview={setPreviewSection}
       />
 
-      <div className="app-main">
-        <TopBar
-          activePiece={activeItem.piece}
-          activeLabel={activeItem.label}
-          position={activeItem.position}
-          focus={activeItem.focus}
-        />
+      <main className="stage-layout">
+        <TopBar item={visibleItem} />
 
-        <div className="hud">
-          <div className="hud__move" data-key={moveKey}>{moveLabel}</div>
-          <div className="hud__hover">{hoverLabel || activeItem.description}</div>
-
-         <div className="mini-map" aria-label="Strategic mini map">
-  {miniMapSquares.map((item) => (
-    <button
-      key={item.id}
-      type="button"
-      className={`mini-map__cell ${
-        item.active ? 'is-active' : ''
-      } ${item.preview ? 'is-preview' : ''}`}
-      title={item.square}
-      onClick={() => setActiveSection(item.id)}
-      onMouseEnter={() => setPreviewSection(item.id)}
-      onMouseLeave={() => setPreviewSection(null)}
-    >
-      {item.square}
-    </button>
-  ))}
-</div>
+        <div className="stage-pane">
+          <SpatialStage
+            activeItem={activeItem}
+            previewItem={previewItem}
+            previewSection={previewSection}
+          />
         </div>
 
-        <main className="app-content">
-          <SectionFrame item={activeItem}>
-            {activeSection === 'identity' && <Identity id="identity" />}
-            {activeSection === 'leadership' && <Leadership id="leadership" />}
-            {activeSection === 'systems' && <Systems id="systems" />}
-            {activeSection === 'teaching' && <Teaching id="teaching" />}
-            {activeSection === 'strategy' && <Strategy id="strategy" />}
-            {activeSection === 'community' && <Community id="community" />}
-          </SectionFrame>
-        </main>
-      </div>
+        <ContentSheet item={activeItem}>
+          {renderSection()}
+        </ContentSheet>
 
-      <MobileNav
-        items={items}
-        activeSection={activeSection}
-        onSelect={setActiveSection}
-      />
+        <MobileNav
+          items={NAV_ITEMS}
+          activeId={activeItem.id}
+          onNavigate={setActiveSection}
+          onPreview={setPreviewSection}
+        />
+      </main>
     </div>
   );
 }
+
+export default App;
